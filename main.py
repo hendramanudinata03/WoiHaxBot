@@ -18,44 +18,53 @@ session = requests_cache.CachedSession("woihax_cache", expire_after=180)
 # Hax & Woiden "Create VPS" page URL
 haxCreateVPSPage = "https://hax.co.id/create-vps/"
 woidenCreateVPSPage = "https://woiden.id/create-vps/"
+createVPSPageDict = {
+    "Hax": haxCreateVPSPage,
+    "Woiden": woidenCreateVPSPage
+}
 
 # Function: Parse page
-def getAvailableServer(update, context, site):
-    if site == "Hax":
-        requestPage = session.get(haxCreateVPSPage).content
-    elif site == "Woiden":
-        requestPage = session.get(woidenCreateVPSPage).content
+def getAvailableServer(update, context):
+    arrayText = []
+    for key, value in createVPSPageDict.items():
+        requestPage = session.get(value).content
+        parsedCreateVPSPage = BeautifulSoup(requestPage, "html.parser")
+        availableServers = parsedCreateVPSPage.find("select", {"id": "datacenter"}).find_all("option")[1:] # Skip the first entry ("--select--")
+        totalAvailableServers = len(availableServers)
+
+        text = f"<b>{key}</b>:\n"
+        if totalAvailableServers > 1:
+            text += f"There is/are <b>{totalAvailableServers}</b> available servers at {key}:\n\n"
+            for availableServer in availableServers:
+                text += f"• {availableServer.text}\n"
+        else:
+            text += f"Sorry, there are <b>no</b> available servers at {key}!"
+        arrayText.append(text)
+
+    # Overall resulting text
+    # arrayText[0] = Hax
+    # arrayText[1] = Woiden
+    resultText = f"{arrayText[0]}\n\n{arrayText[1]}"
+
+    # /list <blablabla>
+    if len(context.args) == 1:
+        if context.args[0] == "Hax" or context.args[0] == "hax":
+            update.message.reply_text(arrayText[0], parse_mode="HTML")
+        elif context.args[0] == "Woiden" or context.args[0] == "woiden":
+            update.message.reply_text(arrayText[1], parse_mode="HTML")
+        else:
+            update.message.reply_text(resultText, parse_mode="HTML")
+    # /list
     else:
-        print("Unknown site parsed as argument!")
-        exit(1)
-    parsedCreateVPSPage = BeautifulSoup(requestPage, "html.parser")
-    availableServers = parsedCreateVPSPage.find("select", {"id": "datacenter"}).find_all("option")[1:] # Skip the first entry ("--select--")
-    totalAvailableServers = len(availableServers)
-
-    if totalAvailableServers > 1:
-        text = f"There is/are <b>{totalAvailableServers}</b> available servers at {site}:\n\n"
-        for availableServer in availableServers:
-            text += f"• {availableServer.text}\n"
-    else:
-        text = f"Sorry, there are <b>no</b> available servers at {site}!"
-
-    update.message.reply_text(text, parse_mode="HTML")
-
-# These two functions below act as getAvailableServer() caller
-# Since CommandHandler() can't accept function arguments
-# TODO: Use better approach
-def haxSendInfo(update, context):
-    getAvailableServer(update, context, "Hax")
-def woidenSendInfo(update, context):
-    getAvailableServer(update, context, "Woiden")
+        update.message.reply_text(resultText, parse_mode="HTML")
 
 if __name__ == "__main__":
     # Telegram Bot initialization
     updater = Updater(BOT_TOKEN, use_context=True)
 
     dispatcher = updater.dispatcher
-    dispatcher.add_handler(CommandHandler("hax", haxSendInfo, run_async=True))
-    dispatcher.add_handler(CommandHandler("woiden", woidenSendInfo, run_async=True))
+    # /list
+    dispatcher.add_handler(CommandHandler("list", getAvailableServer, run_async=True))
 
     print("Bot initialized!")
     updater.start_polling()
