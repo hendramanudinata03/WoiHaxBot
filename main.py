@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import configparser
-import requests
+import requests_cache
 from bs4 import BeautifulSoup
 from telegram.ext import Updater, CommandHandler
 
@@ -12,8 +12,8 @@ config.read("config.ini")
 
 BOT_TOKEN = config["bot"]["token"]
 
-# Initialize requests session
-session = requests.Session()
+# Initialize requests session + cache
+session = requests_cache.CachedSession("woihax_cache", expire_after=180)
 
 # Hax & Woiden "Create VPS" page URL
 haxCreateVPSPage = "https://hax.co.id/create-vps/"

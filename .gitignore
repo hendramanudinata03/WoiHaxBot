@@ -1,2 +1,5 @@
 # Configuration
 config.ini
+
+# Cache database
+woihax_cache.sqlite
