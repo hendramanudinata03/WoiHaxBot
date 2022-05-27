@@ -33,7 +33,7 @@ def getAvailableServer(update, context):
         totalAvailableServers = len(availableServers)
 
         text = f"<b>{key}</b>:\n"
-        if totalAvailableServers > 1:
+        if totalAvailableServers >= 1:
             text += f"There is/are <b>{totalAvailableServers}</b> available servers at {key}:\n\n"
             for availableServer in availableServers:
                 text += f"• {availableServer.text}\n"
