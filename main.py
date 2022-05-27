@@ -14,6 +14,9 @@ BOT_TOKEN = config["bot"]["token"]
 
 # Initialize requests session + cache
 session = requests_cache.CachedSession("woihax_cache", expire_after=180)
+session.headers.update(
+    {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36"}
+)
 
 # Hax & Woiden "Create VPS" page URL
 haxCreateVPSPage = "https://hax.co.id/create-vps/"
